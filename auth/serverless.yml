@@ -1,0 +1,199 @@
+service: aws-node-rest-api-auth-book-app-service
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  profile: default
+  
+  iamRoleStatements:
+    # - Effect: Allow
+    #   Action:
+    #     - dynamodb:Query
+    #     - dynamodb:Scan
+    #     - dynamodb:GetItem
+    #     - dynamodb:PutItem
+    #     - dynamodb:UpdateItem
+    #     - dynamodb:DeleteItem
+    #   Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE_ORDERS}"
+    - Effect: Allow
+      Action:
+        - cognito-idp:AdminGetUser
+        - cognito-idp:adminListGroupsForUser
+      Resource: "*"
+# functions:
+#   create:
+#     handler: todos/create.create
+#     events:
+#       - http:
+#           path: todos
+#           method: post
+#           cors: true
+#           authorizer: aws_iam
+
+#   list:
+#     handler: todos/list.list
+#     events:
+#       - http:
+#           path: todos
+#           method: get
+#           cors: true
+#           authorizer: aws_iam
+
+#   get:
+#     handler: todos/get.get
+#     events:
+#       - http:
+#           path: todos/{id}
+#           method: get
+#           cors: true
+#           authorizer: aws_iam
+
+#   update:
+#     handler: todos/update.update
+#     events:
+#       - http:
+#           path: todos/{id}
+#           method: put
+#           cors: true
+#           authorizer: aws_iam
+
+#   delete:
+#     handler: todos/delete.delete
+#     events:
+#       - http:
+#           path: todos/{id}
+#           method: delete
+#           cors: true
+#           authorizer: aws_iam
+
+resources:
+  Resources:
+    # TodosDynamoDbTable:
+    #   Type: 'AWS::DynamoDB::Table'
+    #   DeletionPolicy: Retain
+    #   Properties:
+    #     AttributeDefinitions:
+    #       - AttributeName: id
+    #         AttributeType: S
+    #       - AttributeName: user
+    #         AttributeType: S
+    #     KeySchema:
+    #       - AttributeName: id
+    #         KeyType: HASH
+    #       - AttributeName: user
+    #         KeyType: RANGE
+    #     ProvisionedThroughput:
+    #       ReadCapacityUnits: 1
+    #       WriteCapacityUnits: 1
+    #     TableName: ${self:provider.environment.DYNAMODB_TABLE_ORDERS}
+    # Cognito - User pool
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: cognito_sls_user_pool_bookapp
+        UsernameAttributes:
+          - email
+        AutoVerifiedAttributes:
+          - email
+    # Cognito - Client
+    CognitoUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: cognito_sls_client_bookapp
+        UserPoolId:
+          Ref: CognitoUserPool
+    # Cognito - Identity
+    CognitoIdentityPool:
+      Type: AWS::Cognito::IdentityPool
+      Properties:
+        IdentityPoolName: cognito_sls_identity_pool_bookapp
+        AllowUnauthenticatedIdentities: false
+        CognitoIdentityProviders:
+          - ClientId:
+              Ref: CognitoUserPoolClient
+            ProviderName:
+              Fn::GetAtt: [CognitoUserPool, ProviderName]
+    # Cognito roles
+    CognitoIdentityPoolRoles:
+      Type: AWS::Cognito::IdentityPoolRoleAttachment
+      Properties:
+        IdentityPoolId:
+          Ref: CognitoIdentityPool
+        Roles:
+          authenticated:
+            Fn::GetAtt: [CognitoAuthRole, Arn]
+          unauthenticated:
+            Fn::GetAtt: [CognitoUnauthRole, Arn]
+    CognitoAuthRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: appAuthRoleBookingApp
+        Path: /
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Federated: "cognito-identity.amazonaws.com"
+              Action:
+                - "sts:AssumeRoleWithWebIdentity"
+              Condition:
+                StringEquals:
+                  "cognito-identity.amazonaws.com:aud":
+                    Ref: CognitoIdentityPool
+                "ForAnyValue:StringLike":
+                  "cognito-identity.amazonaws.com:amr": authenticated
+        Policies:
+          - PolicyName: "CognitoAuthorizedPolicy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action:
+                    - "mobileanalytics:PutEvents"
+                    - "cognito-sync:*"
+                    - "cognito-identity:*"
+                  Resource: "*"
+                - Effect: "Allow"
+                  Action:
+                    - "execute-api:Invoke"
+                  Resource: "*"
+                # - Effect: Allow
+                #   Action:
+                #     - dynamodb:Query
+                #     - dynamodb:Scan
+                #     - dynamodb:GetItem
+                #     - dynamodb:PutItem
+                #     - dynamodb:UpdateItem
+                #     - dynamodb:DeleteItem
+                #   Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE_ORDERS}"
+    CognitoUnauthRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: appUnauthRoleBookingApp
+        Path: /
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Federated: "cognito-identity.amazonaws.com"
+              Action:
+                - "sts:AssumeRoleWithWebIdentity"
+              Condition:
+                StringEquals:
+                  "cognito-identity.amazonaws.com:aud":
+                    Ref: CognitoIdentityPool
+                "ForAnyValue:StringLike":
+                  "cognito-identity.amazonaws.com:amr": unauthenticated
+        Policies:
+          - PolicyName: "CognitoUnauthorizedPolicy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action:
+                    - "mobileanalytics:PutEvents"
+                    - "cognito-sync:*"
+                    - "cognito-identity:*"
+                  Resource: "*"

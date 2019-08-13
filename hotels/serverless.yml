@@ -1,0 +1,46 @@
+service: aws-node-rest-api-hotel-service
+
+provider:
+  name: aws
+  profile: default
+
+functions:
+  createHotel:
+    handler: createHotel.createHotel
+    events:
+      - http:
+          path: hotel
+          method: post
+          cors: true
+  
+  hotelList:
+    handler: hotelList.hotelList
+    events:
+      - http:
+          path: hotel
+          method: get
+          cors: true
+    
+  # updateUser:
+  #   handler: handler.updateUser
+  #   events:
+  #     - http:
+  #         path: user/{id}
+  #         method: put
+  #         cors: true
+
+  # deleteUser:
+  #   handler: handler.deleteUser
+  #   events:
+  #     - http:
+  #         path: user/{id}
+  #         method: delete
+  #         cors: true
+
+  # user:
+  #   handler: handler.user
+  #   events:
+  #     - http:
+  #         path: user/{id}
+  #         method: get
+  #         cors: true

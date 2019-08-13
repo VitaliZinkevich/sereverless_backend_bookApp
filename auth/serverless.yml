@@ -19,6 +19,7 @@ provider:
       Action:
         - cognito-idp:AdminGetUser
         - cognito-idp:adminListGroupsForUser
+        - cognito-idp:ListUsers
       Resource: "*"
 # functions:
 #   create:

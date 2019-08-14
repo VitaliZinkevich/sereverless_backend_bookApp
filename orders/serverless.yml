@@ -30,7 +30,7 @@ functions:
           cors: true
           authorizer: aws_iam
 
-  hotelList:
+  getOrder:
     handler: getOrder.getOrder
     events:
       - http:

@@ -25,6 +25,9 @@ module.exports.createOrder = (event, context, callback) => {
       .then(() => callback(null, {
         statusCode: 200,
         body: JSON.stringify({ id: order.id }),
+        headers: {  
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': true }
       }))      
       .catch(err => callback(null, createErrorResponse(err.statusCode, err.message)))
   ));

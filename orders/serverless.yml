@@ -19,7 +19,7 @@ provider:
           - cognito-idp:adminListGroupsForUser
           - cognito-idp:ListUsers
         Resource: "*"
-        
+
 functions:
   createOrder:
     handler: createOrder.createOrder
@@ -61,3 +61,27 @@ functions:
   #         path: user/{id}
   #         method: get
   #         cors: true
+
+resources:
+  Resources:
+    UploadedS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: booking-app-upload-bucket
+        CorsConfiguration:
+          CorsRules:
+          - AllowedHeaders: 
+              - '*'
+            AllowedMethods: 
+              - HEAD
+              - GET
+              - PUT
+              - POST
+              - DELETE
+            AllowedOrigins: 
+              - '*'
+            ExposedHeaders:
+              - x-amz-server-side-encryption
+              - x-amz-request-id
+              - x-amz-id-2
+            MaxAge: 3000

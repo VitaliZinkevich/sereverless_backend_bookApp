@@ -159,6 +159,10 @@ resources:
                   Action:
                     - "execute-api:Invoke"
                   Resource: "*"
+                - Effect: "Allow"
+                  Action: 
+                    - "s3:*" 
+                  Resource: "*"
                 # - Effect: Allow
                 #   Action:
                 #     - dynamodb:Query

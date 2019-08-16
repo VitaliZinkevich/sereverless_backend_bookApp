@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Promise = require('bluebird');
 mongoose.Promise = Promise;
+mongoose.set('useFindAndModify', false);
 
 module.exports.mongoString = 'mongodb+srv://furstUserDb:0E3x2C1tnAdnwVAD@firstclustermongo-glrqh.mongodb.net/test?retryWrites=true&w=majority'; // MongoDB Url
 

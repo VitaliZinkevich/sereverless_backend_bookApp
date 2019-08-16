@@ -38,6 +38,15 @@ functions:
           method: get
           cors: true
           authorizer: aws_iam
+
+  updateOrder:
+    handler: updateOrder.updateOrder
+    events:
+      - http:
+          path: order
+          method: put
+          cors: true
+          authorizer: aws_iam
   # updateUser:
   #   handler: handler.updateUser
   #   events:
